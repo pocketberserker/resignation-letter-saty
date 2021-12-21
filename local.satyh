@@ -1,0 +1,89 @@
+@require: math
+
+let-block ctx +date it =
+  line-break false false ctx (inline-fil ++ read-inline ctx it)
+
+type position =
+  | Left
+  | Right
+
+let make-p-line ctx position it =
+  let ib =
+    match position with
+    | Some(Right) -> inline-fil ++ (read-inline ctx it)
+    | _ -> (read-inline ctx it) ++ inline-fil
+  in
+  line-break false false ctx ib
+
+let make-p-lines ctx position its =
+  let bbs =
+    its
+    |> List.map (fun it -> make-p-line ctx position it)
+  in
+  bbs |> List.fold-left (+++) block-nil
+
+let-block ctx +content its =
+  [
+    block-skip 40pt;
+    make-p-lines ctx (Some(Left)) its;
+    block-skip 10pt;
+    make-p-line ctx (Some(Right)) {以上}
+  ]
+  |> List.fold-left (+++) block-nil
+
+let address ctx position its =
+  let ctx-font =
+    ctx
+    |> set-paragraph-margin 10pt 0pt
+  in
+  [
+    block-skip 20pt;
+    make-p-lines ctx-font (Some(position)) its;
+  ]
+  |> List.fold-left (+++) block-nil
+
+let-block ctx +from its =
+  address ctx Right its
+
+let-block ctx +to its =
+  address ctx Left its
+
+let font = `fonts-noto-serif-cjk-jp:NotoSerifCJKjp-Light`
+
+let make-title ctx =
+  let ctx-title =
+    ctx
+    |> set-paragraph-margin 30pt 0pt
+    |> set-font-size 30pt
+  in
+  let ib = inline-fil ++ (read-inline ctx-title {退職届}) ++ inline-fil in
+  line-break false false ctx-title ib
+
+let document bt =
+  let ctx =
+    get-initial-context 440pt (command \math)
+    |> set-dominant-wide-script Kana
+    |> set-language Kana Japanese
+    |> set-language HanIdeographic Japanese
+    |> set-dominant-narrow-script Latin
+    |> set-language Latin English
+    |> set-font HanIdeographic (font, 1., 0.)
+    |> set-font Kana (font, 1., 0.)
+    |> set-font-size 16pt
+  in
+
+  let bb-title = make-title ctx in
+  let bb-main = read-block ctx bt in
+  
+  page-break A4Paper
+    (fun _ -> (|
+      text-origin = (80pt, 100pt);
+      text-height = 630pt;
+    |))
+    (fun _ -> (|
+      header-origin = (0pt, 0pt);
+      header-content = block-nil;
+      footer-origin = (0pt, 0pt);
+      footer-content = block-nil;
+    |))
+    (bb-title +++ bb-main)

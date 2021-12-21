@@ -1,0 +1,22 @@
+@import: local
+
+document '<
+
+  +date { 202X年X月XX日 }
+
+  +to {
+  | Test株式会社
+  | 代表取締役 TestTest 様
+  |}
+
+  +from {
+  | Test本部 Test部
+  | TestTest
+  |}
+
+  +content {
+  | このたび、一身上の都合により、
+  | 202X年X月XX日をもって退職いたします。
+  |}
+
+>
